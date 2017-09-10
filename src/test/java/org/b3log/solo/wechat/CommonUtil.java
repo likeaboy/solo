@@ -1,4 +1,4 @@
-package org.b3log.solo.wechat.util;
+package org.b3log.solo.wechat;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -11,9 +11,6 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-
-import org.b3log.solo.wechat.MyX509TrustManager;
-import org.b3log.solo.wechat.Token;
 
 //import net.sf.json.JSONException;
 //import net.sf.json.JSONObject;
