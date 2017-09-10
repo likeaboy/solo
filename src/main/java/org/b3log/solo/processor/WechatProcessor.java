@@ -1,31 +1,44 @@
 package org.b3log.solo.processor;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.b3log.latke.Keys;
+import org.b3log.latke.ioc.inject.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
 import org.b3log.latke.servlet.annotation.RequestProcessing;
 import org.b3log.latke.servlet.annotation.RequestProcessor;
-import org.b3log.latke.servlet.renderer.JSONRenderer;
 import org.b3log.solo.processor.renderer.PlainTextRender;
-import org.b3log.solo.wechat.Decript;
+import org.b3log.solo.service.DefaultWechatService;
 import org.b3log.solo.wechat.WechatConstants;
-import org.json.JSONObject;
+import org.b3log.solo.wechat.message.TextMessage;
+import org.b3log.solo.wechat.util.DecriptUtil;
+import org.b3log.solo.wechat.util.MessageUtil;
 
+/**
+ * 微信模块处理器
+ * @author Rocky.Wang
+ *
+ */
 @RequestProcessor
-public class WechatCheckProcessor {
+public class WechatProcessor {
 	
-	 private static final Logger LOGGER = Logger.getLogger(WechatCheckProcessor.class);
+	 private static final Logger LOGGER = Logger.getLogger(WechatProcessor.class);
+	 
+	 @Inject
+    private DefaultWechatService wechatService;
 	
 	public static void main(String[] args) {
-		WechatCheckProcessor processor = new WechatCheckProcessor();
+		WechatProcessor processor = new WechatProcessor();
 //		long _time = System.currentTimeMillis();
 		long _time = 1504853434150L;
 		//dd42d2607a68acc66f06756d0bdcbb1c180799b2
@@ -34,7 +47,34 @@ public class WechatCheckProcessor {
 		System.out.println(b);
 	}
 	
-	 @RequestProcessing(value = "/wechat_check.do", method = HTTPRequestMethod.GET)
+	
+	
+    @RequestProcessing(value = "/wechat.do", method = HTTPRequestMethod.POST)
+    public void doPost(final HttpServletRequest request, final HTTPRequestContext context) {
+    	// 消息的接收、处理、响应
+        // 将请求、响应的编码均设置为UTF-8（防止中文乱码）
+        try {
+			request.setCharacterEncoding("UTF-8");
+			LOGGER.log(Level.INFO, "recive the message from wechat..");
+	        context.getResponse().setCharacterEncoding("UTF-8");
+	
+	        // 调用核心业务类接收消息、处理消息
+	        String respXml = wechatService.processRequest(request);
+//	        String respXml = processRequest(request);
+	
+	        // 响应消息
+	        PrintWriter out = context.getResponse().getWriter();
+	        out.print(respXml);
+	        out.close();
+        } catch (UnsupportedEncodingException e) {
+        	LOGGER.log(Level.ERROR, "response to user message error unsupported encoding", e);
+		} catch (IOException e) {
+			LOGGER.log(Level.ERROR, "response to user message error io exception", e);
+		}
+    }
+	
+	
+	 @RequestProcessing(value = "/wechat.do", method = HTTPRequestMethod.GET)
 	    public void check(final HttpServletRequest request, final HTTPRequestContext context) {
 		String signature = request.getParameter("signature");
 		String timestamp = request.getParameter("timestamp");
@@ -63,35 +103,17 @@ public class WechatCheckProcessor {
 	        for (int i = 0; i < arr.length; i++) {  
 	            content.append(arr[i]);  
 	        }  
-	        MessageDigest md = null;  
 	        String tmpStr = null;  
 	  
 	        try {  
-//	            md = MessageDigest.getInstance("SHA-1");  
-//	            // 将三个参数字符串拼接成一个字符串进行sha1加密  
-//	            byte[] digest = md.digest(content.toString().getBytes());  
-//	            tmpStr = bytes2Hex(digest);
-	        	tmpStr= Decript.SHA1(content.toString());
+	        	tmpStr= DecriptUtil.SHA1(content.toString());
 	        } catch (Exception e) {  
 	            e.printStackTrace();  
 	        }  
 	        System.out.println(tmpStr);
 	        return tmpStr;
 	 }
-	 public String bytes2Hex(byte[] src) {
-		 if (src == null || src.length <= 0) { 
-		  return null; 
-		 } 
-		 
-		 char[] res = new char[src.length * 2]; // 每个byte对应两个字符
-		 final char hexDigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-		 for (int i = 0, j = 0; i < src.length; i++) {
-		  res[j++] = hexDigits[src[i] >> 4 & 0x0f]; // 先存byte的高4位
-		  res[j++] = hexDigits[src[i] & 0x0f]; // 再存byte的低4位
-		 }
-		 
-		 return new String(res);
-		}
+	 
 	 /** 
 	     * 验证签名 
 	     *  
@@ -112,11 +134,7 @@ public class WechatCheckProcessor {
 	        String tmpStr = null;  
 	  
 	        try {  
-//	            md = MessageDigest.getInstance("SHA-1");  
-//	            // 将三个参数字符串拼接成一个字符串进行sha1加密  
-//	            byte[] digest = md.digest(content.toString().getBytes());  
-//	            tmpStr = bytes2Hex(digest);
-	        	tmpStr= Decript.SHA1(content.toString());
+	        	tmpStr= DecriptUtil.SHA1(content.toString());
 	        } catch (Exception e) {  
 	        	LOGGER.log(Level.ERROR, "signature check error", e);
 	        }  
