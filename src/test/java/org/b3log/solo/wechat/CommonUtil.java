@@ -12,13 +12,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
+import org.json.JSONException;
+
 //import net.sf.json.JSONException;
 //import net.sf.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONObject;
+//import com.alibaba.fastjson.JSONObject;
 
 /**
  * 通用工具类
@@ -42,8 +44,8 @@ public class CommonUtil {
      * @param outputStr 提交的数据
      * @return JSONObject(通过JSONObject.get(key)的方式获取json对象的属性值)
      */
-    public static JSONObject httpsRequest(String requestUrl, String requestMethod, String outputStr) {
-        JSONObject jsonObject = null;
+    public static org.json.JSONObject httpsRequest(String requestUrl, String requestMethod, String outputStr) {
+    	org.json.JSONObject jsonObject = null;
         try {
             // 创建SSLContext对象，并使用我们指定的信任管理器初始化
             TrustManager[] tm = { new MyX509TrustManager() };
@@ -86,7 +88,10 @@ public class CommonUtil {
             inputStream.close();
             inputStream = null;
             conn.disconnect();
-            jsonObject =  (JSONObject) JSONObject.parse(buffer.toString());
+            jsonObject = new org.json.JSONObject(buffer.toString());
+            
+            
+//            jsonObject =  (JSONObject) JSONObject.parse(buffer.toString());
 //            jsonObject = JSONObject.fromObject(buffer.toString());
         } catch (ConnectException ce) {
             log.error("连接超时：{}", ce);
@@ -107,17 +112,21 @@ public class CommonUtil {
         Token token = null;
         String requestUrl = tokenUrl.replace("APPID", appid).replace("APPSECRET", appsecret);
         // 发起GET请求获取凭证
-        JSONObject jsonObject = httpsRequest(requestUrl, "GET", null);
+        org.json.JSONObject jsonObject = httpsRequest(requestUrl, "GET", null);
 
         if (null != jsonObject) {
             try {
                 token = new Token();
                 token.setAccessToken(jsonObject.getString("access_token"));
-                token.setExpiresIn(jsonObject.getInteger("expires_in"));
+                token.setExpiresIn(jsonObject.getInt("expires_in"));
             } catch (Exception e) {
                 token = null;
                 // 获取token失败
-                log.error("获取token失败 errcode:{} errmsg:{}", jsonObject.getInteger("errcode"), jsonObject.getString("errmsg"));
+                try {
+					log.error("获取token失败 errcode:{} errmsg:{}", jsonObject.getInt("errcode"), jsonObject.getString("errmsg"));
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
             }
         }
         return token;

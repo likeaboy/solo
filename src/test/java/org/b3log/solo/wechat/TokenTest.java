@@ -1,4 +1,4 @@
-/*package org.b3log.solo.wechat;
+package org.b3log.solo.wechat;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import org.testng.annotations.Test;
 
 public class TokenTest {
 
-    @Test
+    /*@Test
     public void testGetToken1() throws Exception {
         String tokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=appID&secret=appsecret";
         // 建立连接
@@ -53,18 +53,18 @@ public class TokenTest {
         httpUrlConn.disconnect();
         // 输出返回结果
         System.out.println(buffer);
-    }
+    }*/
 
-    @Test
+   /* @Test
     public void testGetToken2() {
         Token token = CommonUtil.getToken("appID","appsecret");
         System.out.println("access_token:"+token.getAccessToken());
         System.out.println("expires_in:"+token.getExpiresIn());
-    }
+    }*/
     
     public static void main(String[] args) {
     	Token token = CommonUtil.getToken("appID","appsecret");
         System.out.println("access_token:"+token.getAccessToken());
         System.out.println("expires_in:"+token.getExpiresIn());
 	}
-}*/
+}
