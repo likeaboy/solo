@@ -47,7 +47,7 @@ public class ListHandlePolicy extends AbstractHandlePolicy{
         StringBuilder content = new StringBuilder("博客列表：");
         content.append(MenuConstant.DOUBLE_NEW_LINE);
     	try {
-    		List<JSONObject> jsonResult = articleRepository.getRecentArticles(8);
+    		List<JSONObject> jsonResult = articleRepository.getRecentArticles((int)articleRepository.count());
     	
 	    	for(JSONObject json : jsonResult) {
 	    		String title = json.getString(org.b3log.solo.model.Article.ARTICLE_TITLE);
